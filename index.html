@@ -50,6 +50,14 @@
       margin-top: 1px;
     }
 
+    /* Logo Spotless diperbesar hanya pada form Cuti/Izin */
+    .spotless-logo-large .spotless-text {
+      font-size: 2.4rem;
+    }
+    .spotless-logo-large .spotless-subtext {
+      font-size: 0.7rem;
+    }
+
     .editable {
       outline: none;
       border-bottom: 1px dotted transparent;
@@ -118,7 +126,16 @@
       margin: 4mm 0;
     }
     
-   
+    .cut-line::after {
+      content: '✂ Gunting / Potong di sini (Setengah A4 / A5)';
+      position: absolute;
+      top: -10px;
+      right: 20px;
+      background: white;
+      padding: 0 8px;
+      font-size: 10px;
+      color: #6b7280;
+    }
 
     /* Layout CUTI (Full A4 Exact PDF Matching) */
     .a4-sheet-cuti {
@@ -541,14 +558,14 @@
           </div>
 
           <!-- Kanan: Logo Spotless -->
-          <div class="spotless-logo items-end">
+          <div class="spotless-logo spotless-logo-large items-end">
             <div class="spotless-text">sp<span class="spotless-dot-o"></span>tless<span class="spotless-dot-end">.</span></div>
             <div class="spotless-subtext">Powered by MITJ</div>
           </div>
         </div>
 
         <div class="text-center mb-6">
-          <h1 class="font-bold text-sm tracking-wide text-gray-900 uppercase">FORM PERMOHONAN IZIN KETIDAKHADIRAN</h1>
+          <h1 class="font-bold text-2xl tracking-wide text-gray-900 uppercase">FORM PERMOHONAN IZIN KETIDAKHADIRAN</h1>
           <h2 class="text-xs italic text-gray-600 font-medium">Absence Permission Request Form</h2>
         </div>
 
@@ -650,7 +667,7 @@
               <button onclick="clearCanvas('canvas-cuti-karyawan')" class="signature-actions absolute top-0 right-0 text-[10px] text-gray-400 hover:text-red-600 p-0.5">Reset</button>
             </div>
             <div class="pt-1">
-              <span>(. </span><span contenteditable="true" id="c-nama-karyawan-ttd" class="editable font-medium min-w-[140px] text-center"></span><span> .)</span>
+              <span>(</span><span contenteditable="true" id="c-nama-karyawan-ttd" class="editable font-medium min-w-[140px] text-center"></span><span>)</span>
             </div>
             <div class="text-[11px] text-gray-800 mt-0.5">Nama & Tanda Tangan</div>
             <div class="text-[11px] text-gray-800 mt-0.5 flex justify-center items-center">
@@ -667,7 +684,7 @@
               <button onclick="clearCanvas('canvas-cuti-user')" class="signature-actions absolute top-0 right-0 text-[10px] text-gray-400 hover:text-red-600 p-0.5">Reset</button>
             </div>
             <div class="pt-1">
-              <span>(. </span><span contenteditable="true" id="c-nama-user-ttd" class="editable font-medium min-w-[140px] text-center"></span><span> .)</span>
+              <span>(</span><span contenteditable="true" id="c-nama-user-ttd" class="editable font-medium min-w-[140px] text-center"></span><span>)</span>
             </div>
             <div class="text-[11px] text-gray-800 mt-0.5">Nama & Tanda Tangan</div>
             <div class="text-[11px] text-gray-800 mt-0.5 flex justify-center items-center">
@@ -882,8 +899,28 @@
       }, 100);
     }
 
+    // Otomatis salin nama karyawan ke kolom nama pada tanda tangan.
+    function setupAutoEmployeeName() {
+      const namePairs = [
+        ['f1-nama', 'f1-nama-diajukan'],
+        ['f2-nama', 'f2-nama-diajukan'],
+        ['c-nama', 'c-nama-karyawan-ttd']
+      ];
+
+      namePairs.forEach(([employeeNameId, signatureNameId]) => {
+        const employeeName = document.getElementById(employeeNameId);
+        const signatureName = document.getElementById(signatureNameId);
+        if (!employeeName || !signatureName) return;
+
+        employeeName.addEventListener('input', () => {
+          signatureName.textContent = employeeName.textContent;
+        });
+      });
+    }
+
     window.onload = function() {
       initSignaturePads();
+      setupAutoEmployeeName();
     };
   </script>
 </body>
