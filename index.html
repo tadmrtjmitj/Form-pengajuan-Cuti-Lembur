@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Form SPL & Cuti - PT MITJ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+      color: #000;
+    }
+
+    /* Spotless Logo Styling */
+    .spotless-logo {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      line-height: 1;
+    }
+    .spotless-text {
+      font-weight: 900;
+      font-size: 1.4rem;
+      color: #0b4594;
+      letter-spacing: -0.04em;
+      display: flex;
+      align-items: center;
+    }
+    .spotless-dot-o {
+      display: inline-block;
+      width: 0.62em;
+      height: 0.62em;
+      background-color: #0080ff;
+      border-radius: 50%;
+      margin: 0 0.03em;
+      align-self: center;
+    }
+    .spotless-dot-end {
+      color: #0080ff;
+    }
+    .spotless-subtext {
+      font-size: 0.5rem;
+      font-weight: 600;
+      color: #0b4594;
+      align-self: flex-end;
+      margin-top: 1px;
+    }
+
+    .editable {
+      outline: none;
+      border-bottom: 1px dotted transparent;
+      transition: all 0.2s;
+      min-height: 1.25rem;
+      display: inline-block;
+    }
+
+    .editable:hover {
+      border-bottom: 1px dotted #9ca3af;
+      background-color: rgba(243, 244, 246, 0.5);
+    }
+
+    .editable:focus {
+      border-bottom: 1px solid #2563eb;
+      background-color: #eff6ff;
+    }
+
+    textarea.editable-area {
+      width: 100%;
+      border: 1px solid transparent;
+      resize: vertical;
+      outline: none;
+      font-family: inherit;
+      background: transparent;
+    }
+
+    textarea.editable-area:hover {
+      border-color: #d1d5db;
+      background-color: rgba(243, 244, 246, 0.5);
+    }
+
+    textarea.editable-area:focus {
+      border-color: #2563eb;
+      background-color: #eff6ff;
+    }
+
+    /* Layout LEMBUR (A4 split to 2x A5) */
+    .a4-sheet-lembur {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 8mm 12mm;
+      margin: 0 auto;
+      background: white;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .a5-form {
+      width: 100%;
+      height: 136mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-sizing: border-box;
+      padding: 2mm 0;
+    }
+
+    .cut-line {
+      border-top: 1px dashed #9ca3af;
+      position: relative;
+      margin: 4mm 0;
+    }
+    
+    .cut-line::after {
+      content: '✂ Gunting / Potong di sini (Setengah A4 / A5)';
+      position: absolute;
+      top: -10px;
+      right: 20px;
+      background: white;
+      padding: 0 8px;
+      font-size: 10px;
+      color: #6b7280;
+    }
+
+    /* Layout CUTI (Full A4 Exact PDF Matching) */
+    .a4-sheet-cuti {
+      width: 210mm;
+      height: 297mm;
+      padding: 12mm 16mm 10mm 16mm;
+      margin: 0 auto;
+      background: white;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Table with borders for Cuti fields */
+    .bordered-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .bordered-table td {
+      border: 1px solid #4b5563;
+      padding: 6px 10px;
+    }
+
+    /* Print Controls */
+    body.print-mode-single-lembur #form-2-lembur,
+    body.print-mode-single-lembur .cut-line {
+      display: none !important;
+    }
+
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+
+      body {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .tab-content {
+        display: none !important;
+      }
+
+      .tab-content.active {
+        display: block !important;
+      }
+
+      .a4-sheet-lembur {
+        box-shadow: none !important;
+        padding: 8mm 12mm !important;
+        width: 210mm !important;
+        margin: 0 !important;
+      }
+
+      .a4-sheet-cuti {
+        box-shadow: none !important;
+        padding: 12mm 16mm 10mm 16mm !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        margin: 0 !important;
+        page-break-after: avoid !important;
+      }
+
+      .editable:hover, .editable:focus, textarea.editable-area:hover, textarea.editable-area:focus {
+        border-color: transparent !important;
+        background-color: transparent !important;
+      }
+      
+      .signature-actions {
+        display: none !important;
+      }
+    }
+
+    .tab-btn.active {
+      background-color: #2563eb;
+      color: white;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="py-6 px-4">
+
+  <!-- Navigation / Control Bar Top -->
+  <div class="no-print fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-2.5 rounded-full shadow-2xl flex items-center space-x-4">
+    <!-- Tab Selector -->
+    <div class="bg-slate-800 p-1 rounded-xl flex space-x-1 border border-slate-700">
+      <button onclick="switchTab('tab-lembur')" id="btn-tab-lembur" class="tab-btn active px-4 py-1.5 text-xs rounded-lg transition flex items-center space-x-1.5">
+        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+        <span>Form Lembur (SPL)</span>
+      </button>
+
+      <button onclick="switchTab('tab-cuti')" id="btn-tab-cuti" class="tab-btn px-4 py-1.5 text-xs rounded-lg transition text-slate-300 hover:text-white flex items-center space-x-1.5">
+        <i data-lucide="calendar-off" class="w-3.5 h-3.5"></i>
+        <span>Form Cuti / Izin</span>
+      </button>
+    </div>
+
+    <!-- Actions for Active Tab -->
+    <div class="flex items-center space-x-2 border-l border-slate-700 pl-3">
+      <!-- Controls for Lembur -->
+      <div id="controls-lembur" class="flex items-center space-x-2">
+        <button onclick="copyForm1ToForm2()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg border border-slate-700 transition flex items-center space-x-1" title="Salin Isian Form 1 ke Form 2">
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          <span>Salin 1 ke 2</span>
+        </button>
+
+        <button onclick="clearLemburFields()" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg border border-slate-700 transition flex items-center space-x-1">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span>Reset</span>
+        </button>
+
+        <button onclick="printLembur('single')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs rounded-lg shadow transition flex items-center space-x-1">
+          <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+          <span>Cetak 1 Form (A5)</span>
+        </button>
+
+        <button onclick="printLembur('double')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs rounded-lg shadow transition flex items-center space-x-1">
+          <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+          <span>Cetak 2 Form (A4)</span>
+        </button>
+      </div>
+
+      <!-- Controls for Cuti -->
+      <div id="controls-cuti" class="hidden flex items-center space-x-2">
+        <button onclick="clearCutiFields()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg border border-slate-700 transition flex items-center space-x-1">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span>Reset</span>
+        </button>
+
+        <button onclick="window.print()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs rounded-lg shadow transition flex items-center space-x-1.5">
+          <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+          <span>Cetak Form Cuti (1 Lembar A4)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-12 no-print text-center text-xs text-gray-500 mb-4">
+  
+  </div>
+
+  <!-- TAB CONTENT 1: FORM LEMBUR (SPL) -->
+  <div id="tab-lembur" class="tab-content active">
+    <div class="a4-sheet-lembur">
+
+      <!-- FORM 1 (TOP HALF A5) -->
+      <div class="a5-form" id="form-1-lembur">
+        <div>
+          <!-- Header -->
+          <div class="flex justify-between items-start mb-2">
+            <div class="spotless-logo">
+              <div class="spotless-text">sp<span class="spotless-dot-o"></span>tless<span class="spotless-dot-end">.</span></div>
+              <div class="spotless-subtext">Powered by MITJ</div>
+            </div>
+
+            <div class="text-center">
+              <h1 class="font-bold text-base underline tracking-wide leading-tight">Form Pengajuan Lembur</h1>
+              <h2 class="font-bold text-sm tracking-tight">Rolling Stock Maintenance PT MRT Jakarta</h2>
+            </div>
+
+            <div class="w-20"></div>
+          </div>
+
+          <!-- Data Karyawan -->
+          <div class="text-xs space-y-1 mb-3">
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Nama Karyawan</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f1-nama" class="editable font-medium flex-1"></span></span>
+            </div>
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Nomor Karyawan</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f1-nik" class="editable font-medium flex-1"></span></span>
+            </div>
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Posisi Karyawan</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f1-posisi" class="editable font-medium flex-1"></span></span>
+            </div>
+          </div>
+
+          <div class="text-center font-semibold text-xs my-2">Detail Pengajuan Lembur</div>
+
+          <!-- Detail Lembur -->
+          <div class="text-xs space-y-1.5">
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Tanggal</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f1-tanggal" class="editable flex-1"></span></span>
+            </div>
+
+            <div class="grid grid-cols-12 items-center">
+              <span class="col-span-3">Hari Lembur</span>
+              <div class="col-span-9 flex items-center space-x-6 pl-0">
+                <span class="mr-2">:</span>
+                <label class="inline-flex items-center space-x-1 cursor-pointer">
+                  <input type="checkbox" id="f1-hk" class="w-3.5 h-3.5 text-blue-600 rounded border-gray-400">
+                  <span class="font-semibold">HK</span>
+                </label>
+                <label class="inline-flex items-center space-x-1 cursor-pointer">
+                  <input type="checkbox" id="f1-hl" class="w-3.5 h-3.5 text-blue-600 rounded border-gray-400">
+                  <span class="font-semibold">HL</span>
+                </label>
+                <label class="inline-flex items-center space-x-1 cursor-pointer">
+                  <input type="checkbox" id="f1-hln" class="w-3.5 h-3.5 text-blue-600 rounded border-gray-400">
+                  <span class="font-semibold">Hari Libur Nasional</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Jam mulai lembur</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f1-jam-mulai" class="editable flex-1"></span></span>
+            </div>
+
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Jam selesai lembur</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f1-jam-selesai" class="editable flex-1"></span></span>
+            </div>
+
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Total durasi lembur</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f1-durasi" class="editable flex-1"></span></span>
+            </div>
+
+            <div class="grid grid-cols-12 items-start">
+              <span class="col-span-3 pt-0.5">Deskripsi keperluan</span>
+              <div class="col-span-9 flex">
+                <span class="mr-2 pt-0.5">:</span>
+                <textarea id="f1-deskripsi" rows="2" class="editable-area text-xs flex-1 leading-relaxed" placeholder=""></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tanda Tangan & Footer -->
+        <div class="mt-2 text-xs">
+          <div class="mb-1 text-left">
+            <span>Jakarta, </span>
+            <span contenteditable="true" id="f1-tgl-ttd" class="editable min-w-[100px]"></span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-8">
+            <div class="border border-black p-1 text-center signature-pad-container relative">
+              <div class="text-[11px] mb-1">Diajukan oleh</div>
+              <div class="relative h-14 w-full flex items-center justify-center">
+                <canvas id="canvas-1-1" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                <button onclick="clearCanvas('canvas-1-1')" class="signature-actions absolute top-0 right-0 text-[9px] text-gray-400 hover:text-red-600 p-0.5">Reset</button>
+              </div>
+              <div class="border-t border-dotted border-black pt-0.5 mt-0.5">
+                <span contenteditable="true" id="f1-nama-diajukan" class="editable font-semibold w-full text-center"></span>
+              </div>
+            </div>
+
+            <div class="border border-black p-1 text-center signature-pad-container relative">
+              <div class="text-[11px] mb-1">Disetujui oleh</div>
+              <div class="relative h-14 w-full flex items-center justify-center">
+                <canvas id="canvas-1-2" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                <button onclick="clearCanvas('canvas-1-2')" class="signature-actions absolute top-0 right-0 text-[9px] text-gray-400 hover:text-red-600 p-0.5">Reset</button>
+              </div>
+              <div class="border-t border-dotted border-black pt-0.5 mt-0.5">
+                <span contenteditable="true" id="f1-nama-disetujui" class="editable font-semibold w-full text-center"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center text-[9px] text-gray-800 mt-2 leading-tight">
+            <p class="font-medium">PT Moda Integrasi Transportasi Jabodetabek</p>
+            <p>Gedung Transport Hub Lantai 5 - Jl. Ps. Blora No. 24 - Jakarta Pusat 10310</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="cut-line"></div>
+
+      <!-- FORM 2 (BOTTOM HALF A5) -->
+      <div class="a5-form" id="form-2-lembur">
+        <div>
+          <!-- Header -->
+          <div class="flex justify-between items-start mb-2">
+            <div class="spotless-logo">
+              <div class="spotless-text">sp<span class="spotless-dot-o"></span>tless<span class="spotless-dot-end">.</span></div>
+              <div class="spotless-subtext">Powered by MITJ</div>
+            </div>
+
+            <div class="text-center">
+              <h1 class="font-bold text-base underline tracking-wide leading-tight">Form Pengajuan Lembur</h1>
+              <h2 class="font-bold text-sm tracking-tight">Rolling Stock Maintenance PT MRT Jakarta</h2>
+            </div>
+
+            <div class="w-20"></div>
+          </div>
+
+          <!-- Data Karyawan -->
+          <div class="text-xs space-y-1 mb-3">
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Nama Karyawan</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f2-nama" class="editable font-medium flex-1"></span></span>
+            </div>
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Nomor Karyawan</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f2-nik" class="editable font-medium flex-1"></span></span>
+            </div>
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Posisi Karyawan</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f2-posisi" class="editable font-medium flex-1"></span></span>
+            </div>
+          </div>
+
+          <div class="text-center font-semibold text-xs my-2">Detail Pengajuan Lembur</div>
+
+          <!-- Detail Lembur -->
+          <div class="text-xs space-y-1.5">
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Tanggal</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f2-tanggal" class="editable flex-1"></span></span>
+            </div>
+
+            <div class="grid grid-cols-12 items-center">
+              <span class="col-span-3">Hari Lembur</span>
+              <div class="col-span-9 flex items-center space-x-6 pl-0">
+                <span class="mr-2">:</span>
+                <label class="inline-flex items-center space-x-1 cursor-pointer">
+                  <input type="checkbox" id="f2-hk" class="w-3.5 h-3.5 text-blue-600 rounded border-gray-400">
+                  <span class="font-semibold">HK</span>
+                </label>
+                <label class="inline-flex items-center space-x-1 cursor-pointer">
+                  <input type="checkbox" id="f2-hl" class="w-3.5 h-3.5 text-blue-600 rounded border-gray-400">
+                  <span class="font-semibold">HL</span>
+                </label>
+                <label class="inline-flex items-center space-x-1 cursor-pointer">
+                  <input type="checkbox" id="f2-hln" class="w-3.5 h-3.5 text-blue-600 rounded border-gray-400">
+                  <span class="font-semibold">Hari Libur Nasional</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Jam mulai lembur</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f2-jam-mulai" class="editable flex-1"></span></span>
+            </div>
+
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Jam selesai lembur</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f2-jam-selesai" class="editable flex-1"></span></span>
+            </div>
+
+            <div class="grid grid-cols-12">
+              <span class="col-span-3">Total durasi lembur</span>
+              <span class="col-span-9 flex"><span class="mr-2">:</span><span contenteditable="true" id="f2-durasi" class="editable flex-1"></span></span>
+            </div>
+
+            <div class="grid grid-cols-12 items-start">
+              <span class="col-span-3 pt-0.5">Deskripsi keperluan</span>
+              <div class="col-span-9 flex">
+                <span class="mr-2 pt-0.5">:</span>
+                <textarea id="f2-deskripsi" rows="2" class="editable-area text-xs flex-1 leading-relaxed" placeholder=""></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tanda Tangan & Footer -->
+        <div class="mt-2 text-xs">
+          <div class="mb-1 text-left">
+            <span>Jakarta, </span>
+            <span contenteditable="true" id="f2-tgl-ttd" class="editable min-w-[100px]"></span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-8">
+            <div class="border border-black p-1 text-center signature-pad-container relative">
+              <div class="text-[11px] mb-1">Diajukan oleh</div>
+              <div class="relative h-14 w-full flex items-center justify-center">
+                <canvas id="canvas-2-1" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                <button onclick="clearCanvas('canvas-2-1')" class="signature-actions absolute top-0 right-0 text-[9px] text-gray-400 hover:text-red-600 p-0.5">Reset</button>
+              </div>
+              <div class="border-t border-dotted border-black pt-0.5 mt-0.5">
+                <span contenteditable="true" id="f2-nama-diajukan" class="editable font-semibold w-full text-center"></span>
+              </div>
+            </div>
+
+            <div class="border border-black p-1 text-center signature-pad-container relative">
+              <div class="text-[11px] mb-1">Disetujui oleh</div>
+              <div class="relative h-14 w-full flex items-center justify-center">
+                <canvas id="canvas-2-2" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                <button onclick="clearCanvas('canvas-2-2')" class="signature-actions absolute top-0 right-0 text-[9px] text-gray-400 hover:text-red-600 p-0.5">Reset</button>
+              </div>
+              <div class="border-t border-dotted border-black pt-0.5 mt-0.5">
+                <span contenteditable="true" id="f2-nama-disetujui" class="editable font-semibold w-full text-center"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center text-[9px] text-gray-800 mt-2 leading-tight">
+            <p class="font-medium">PT Moda Integrasi Transportasi Jabodetabek</p>
+            <p>Gedung Transport Hub Lantai 5 - Jl. Ps. Blora No. 24 - Jakarta Pusat 10310</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB CONTENT 2: FORM CUTI / IZIN KETIDAKHADIRAN -->
+  <div id="tab-cuti" class="tab-content hidden">
+    <div class="a4-sheet-cuti">
+      
+      <!-- Top Section -->
+      <div>
+        <!-- Header: Logo Resmi MITJ Kiri & Spotless Logo Kanan -->
+        <div class="flex justify-between items-start mb-6">
+          <!-- Kiri: Menggunakan Link Gambar Resmi MITJ -->
+          <div class="flex items-center">
+            <img src="https://mitj.co.id/wp-content/uploads/2023/09/cropped-cropped-mitj_logo_final1_colorCUT-300x100.png" alt="Logo PT MITJ" class="h-12 w-auto object-contain">
+          </div>
+
+          <!-- Kanan: Logo Spotless -->
+          <div class="spotless-logo items-end">
+            <div class="spotless-text">sp<span class="spotless-dot-o"></span>tless<span class="spotless-dot-end">.</span></div>
+            <div class="spotless-subtext">Powered by MITJ</div>
+          </div>
+        </div>
+
+        <div class="text-center mb-6">
+          <h1 class="font-bold text-sm tracking-wide text-gray-900 uppercase">FORM PERMOHONAN IZIN KETIDAKHADIRAN</h1>
+          <h2 class="text-xs italic text-gray-600 font-medium">Absence Permission Request Form</h2>
+        </div>
+
+        <!-- Data Karyawan -->
+        <div class="space-y-2.5 text-xs mb-5">
+          <div class="grid grid-cols-12 items-center">
+            <div class="col-span-4 text-gray-900 font-normal">Nama Karyawan</div>
+            <div class="col-span-8 flex items-center"><span class="mr-3 text-gray-700">:</span><span contenteditable="true" id="c-nama" class="editable font-medium flex-1"></span></div>
+          </div>
+
+          <div class="grid grid-cols-12 items-center">
+            <div class="col-span-4 text-gray-900 font-normal">Nomor/NIK Karyawan</div>
+            <div class="col-span-8 flex items-center"><span class="mr-3 text-gray-700">:</span><span contenteditable="true" id="c-nik" class="editable font-medium flex-1"></span></div>
+          </div>
+
+          <div class="grid grid-cols-12 items-center">
+            <div class="col-span-4 text-gray-900 font-normal">Jabatan</div>
+            <div class="col-span-8 flex items-center"><span class="mr-3 text-gray-700">:</span><span contenteditable="true" id="c-jabatan" class="editable font-medium flex-1"></span></div>
+          </div>
+
+          <div class="grid grid-cols-12 items-center">
+            <div class="col-span-4 text-gray-900 font-normal">Unit/Section</div>
+            <div class="col-span-8 flex items-center"><span class="mr-3 text-gray-700">:</span><span contenteditable="true" id="c-unit" class="editable font-medium flex-1"></span></div>
+          </div>
+        </div>
+
+        <!-- Jenis Izin Checkboxes -->
+        <div class="space-y-2.5 text-xs mb-5 pt-1">
+          <div class="grid grid-cols-3 gap-4">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="c-jenis-sakit" class="w-4 h-4 text-blue-600 border-gray-400 rounded">
+              <span class="text-gray-900">Izin Sakit</span>
+            </label>
+
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="c-jenis-keagamaan" class="w-4 h-4 text-blue-600 border-gray-400 rounded">
+              <span class="text-gray-900">Izin Keagamaan</span>
+            </label>
+
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="c-jenis-pendidikan" class="w-4 h-4 text-blue-600 border-gray-400 rounded">
+              <span class="text-gray-900">Izin Pendidikan</span>
+            </label>
+          </div>
+
+          <div>
+            <label class="flex items-start space-x-2 cursor-pointer">
+              <input type="checkbox" id="c-jenis-lainnya" class="w-4 h-4 text-blue-600 border-gray-400 rounded mt-0.5">
+              <div class="flex-1">
+                <span class="text-gray-900">Lainnya, keterangan...</span>
+                <span contenteditable="true" id="c-ket-lainnya" class="editable ml-1 inline-block min-w-[150px]"></span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- BORDERED TABLE FOR DATES & ADDRESS -->
+        <table class="bordered-table text-xs mb-5">
+          <tr>
+            <td class="w-1/3 text-gray-900">Tanggal Mulai Izin</td>
+            <td class="w-2/3"><span contenteditable="true" id="c-tgl-mulai" class="editable min-w-[180px]"></span></td>
+          </tr>
+          <tr>
+            <td class="text-gray-900">Tanggal Selesai Izin</td>
+            <td><span contenteditable="true" id="c-tgl-selesai" class="editable min-w-[180px]"></span></td>
+          </tr>
+          <tr>
+            <td class="text-gray-900">Jumlah Hari</td>
+            <td><span contenteditable="true" id="c-jumlah-hari" class="editable font-semibold min-w-[100px]"></span></td>
+          </tr>
+          <tr>
+            <td class="text-gray-900 leading-tight">Tanggal Mulai Bekerja<br>Kembali</td>
+            <td><span contenteditable="true" id="c-tgl-kembali" class="editable min-w-[180px]"></span></td>
+          </tr>
+          <tr>
+            <td class="text-gray-900">Alamat Selama Izin</td>
+            <td><textarea id="c-alamat" rows="2" class="editable-area text-xs flex-1 leading-relaxed" placeholder=""></textarea></td>
+          </tr>
+        </table>
+
+        <!-- BORDERED BOX FOR ALASAN IZIN -->
+        <div class="text-xs mb-6">
+          <div class="border border-gray-600 p-2.5">
+            <label class="text-gray-900 block mb-1 font-medium">Keterangan Alasan Izin:</label>
+            <textarea id="c-alasan" rows="3" class="editable-area text-xs leading-relaxed" placeholder=""></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Section: TTD & PDF Official Footer -->
+      <div class="mt-auto">
+        <!-- Tanda Tangan Dual Columns -->
+        <div class="grid grid-cols-2 gap-16 text-xs mb-6">
+          <!-- Karyawan -->
+          <div class="text-center relative signature-pad-container">
+            <div class="font-normal text-gray-900 mb-1">Karyawan</div>
+            <div class="relative h-20 w-full flex items-center justify-center my-1">
+              <canvas id="canvas-cuti-karyawan" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+              <button onclick="clearCanvas('canvas-cuti-karyawan')" class="signature-actions absolute top-0 right-0 text-[10px] text-gray-400 hover:text-red-600 p-0.5">Reset</button>
+            </div>
+            <div class="pt-1">
+              <span>(. </span><span contenteditable="true" id="c-nama-karyawan-ttd" class="editable font-medium min-w-[140px] text-center"></span><span> .)</span>
+            </div>
+            <div class="text-[11px] text-gray-800 mt-0.5">Nama & Tanda Tangan</div>
+            <div class="text-[11px] text-gray-800 mt-0.5 flex justify-center items-center">
+              <span>Tanggal: </span>
+              <span contenteditable="true" id="c-tgl-ttd-karyawan" class="editable ml-1 min-w-[100px]"></span>
+            </div>
+          </div>
+
+          <!-- User -->
+          <div class="text-center relative signature-pad-container">
+            <div class="font-normal text-gray-900 mb-1">User</div>
+            <div class="relative h-20 w-full flex items-center justify-center my-1">
+              <canvas id="canvas-cuti-user" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+              <button onclick="clearCanvas('canvas-cuti-user')" class="signature-actions absolute top-0 right-0 text-[10px] text-gray-400 hover:text-red-600 p-0.5">Reset</button>
+            </div>
+            <div class="pt-1">
+              <span>(. </span><span contenteditable="true" id="c-nama-user-ttd" class="editable font-medium min-w-[140px] text-center"></span><span> .)</span>
+            </div>
+            <div class="text-[11px] text-gray-800 mt-0.5">Nama & Tanda Tangan</div>
+            <div class="text-[11px] text-gray-800 mt-0.5 flex justify-center items-center">
+              <span>Tanggal: </span>
+              <span contenteditable="true" id="c-tgl-ttd-user" class="editable ml-1 min-w-[100px]"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Official PDF Footer Address & Page Info -->
+        <div class="pt-2 text-[9px] flex justify-between items-center leading-tight border-t border-gray-300">
+          <div class="pl-3 border-l-4 border-blue-600 text-blue-900 space-y-0.5">
+            <p class="font-semibold">PT Moda Integrasi Transportasi Jabodetabek</p>
+            <p>Transport Hub Lantai 5</p>
+            <p>Jalan Ps. Blora No. 24, Dukuh Atas</p>
+            <p>Jakarta 10310, Indonesia</p>
+            <p>Telp. (021) 3000 1919</p>
+            <p>Email: info@mitj.co.id</p>
+          </div>
+
+          <div class="text-center space-y-1 mx-auto">
+            <p class="font-semibold text-gray-900">Halaman 1</p>
+            <p class="italic text-[8px] text-gray-600 max-w-[250px] leading-tight">
+              Dokumen ini ditandatangani secara elektronik yang memiliki kekuatan dan akibat hukum yang sah selayaknya tanda tangan basah.
+            </p>
+          </div>
+          <div class="w-[120px]"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+      document.getElementById(tabId).classList.remove('hidden');
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'tab-lembur') {
+        document.getElementById('btn-tab-lembur').classList.add('active');
+        document.getElementById('controls-lembur').classList.remove('hidden');
+        document.getElementById('controls-cuti').classList.add('hidden');
+      } else {
+        document.getElementById('btn-tab-cuti').classList.add('active');
+        document.getElementById('controls-cuti').classList.remove('hidden');
+        document.getElementById('controls-lembur').classList.add('hidden');
+      }
+
+      setTimeout(initSignaturePads, 100);
+    }
+
+    function initSignaturePads() {
+      const canvasIds = ['canvas-1-1', 'canvas-1-2', 'canvas-2-1', 'canvas-2-2', 'canvas-cuti-karyawan', 'canvas-cuti-user'];
+
+      canvasIds.forEach(id => {
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+          const rect = canvas.getBoundingClientRect();
+          if (rect.width === 0 || rect.height === 0) return;
+          canvas.width = rect.width;
+          canvas.height = rect.height;
+          ctx.strokeStyle = '#000080';
+          ctx.lineWidth = 2;
+          ctx.lineCap = 'round';
+        }
+
+        resizeCanvas();
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        function getPos(e) {
+          const rect = canvas.getBoundingClientRect();
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+          };
+        }
+
+        function startDrawing(e) {
+          isDrawing = true;
+          const pos = getPos(e);
+          lastX = pos.x;
+          lastY = pos.y;
+        }
+
+        function draw(e) {
+          if (!isDrawing) return;
+          e.preventDefault();
+          const pos = getPos(e);
+
+          ctx.beginPath();
+          ctx.moveTo(lastX, lastY);
+          ctx.lineTo(pos.x, pos.y);
+          ctx.stroke();
+
+          lastX = pos.x;
+          lastY = pos.y;
+        }
+
+        function stopDrawing() {
+          isDrawing = false;
+        }
+
+        canvas.onmousedown = startDrawing;
+        canvas.onmousemove = draw;
+        canvas.onmouseup = stopDrawing;
+        canvas.onmouseleave = stopDrawing;
+
+        canvas.ontouchstart = startDrawing;
+        canvas.ontouchend = stopDrawing;
+      });
+    }
+
+    function clearCanvas(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    function clearLemburFields() {
+      const ids = ['f1-nama', 'f1-nik', 'f1-posisi', 'f1-tanggal', 'f1-jam-mulai', 'f1-jam-selesai', 'f1-durasi', 'f1-tgl-ttd', 'f1-nama-diajukan', 'f1-nama-disetujui', 'f2-nama', 'f2-nik', 'f2-posisi', 'f2-tanggal', 'f2-jam-mulai', 'f2-jam-selesai', 'f2-durasi', 'f2-tgl-ttd', 'f2-nama-diajukan', 'f2-nama-disetujui'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '';
+      });
+
+      document.getElementById('f1-deskripsi').value = '';
+      document.getElementById('f2-deskripsi').value = '';
+
+      ['f1-hk', 'f1-hl', 'f1-hln', 'f2-hk', 'f2-hl', 'f2-hln'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.checked = false;
+      });
+
+      ['canvas-1-1', 'canvas-1-2', 'canvas-2-1', 'canvas-2-2'].forEach(clearCanvas);
+    }
+
+    function clearCutiFields() {
+      const ids = ['c-nama', 'c-nik', 'c-jabatan', 'c-unit', 'c-ket-lainnya', 'c-tgl-mulai', 'c-tgl-selesai', 'c-jumlah-hari', 'c-tgl-kembali', 'c-nama-karyawan-ttd', 'c-tgl-ttd-karyawan', 'c-nama-user-ttd', 'c-tgl-ttd-user'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '';
+      });
+
+      document.getElementById('c-alamat').value = '';
+      document.getElementById('c-alasan').value = '';
+
+      ['c-jenis-sakit', 'c-jenis-keagamaan', 'c-jenis-pendidikan', 'c-jenis-lainnya'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.checked = false;
+      });
+
+      ['canvas-cuti-karyawan', 'canvas-cuti-user'].forEach(clearCanvas);
+    }
+
+    function copyForm1ToForm2() {
+      document.getElementById('f2-nama').textContent = document.getElementById('f1-nama').textContent;
+      document.getElementById('f2-nik').textContent = document.getElementById('f1-nik').textContent;
+      document.getElementById('f2-posisi').textContent = document.getElementById('f1-posisi').textContent;
+      document.getElementById('f2-tanggal').textContent = document.getElementById('f1-tanggal').textContent;
+
+      document.getElementById('f2-hk').checked = document.getElementById('f1-hk').checked;
+      document.getElementById('f2-hl').checked = document.getElementById('f1-hl').checked;
+      document.getElementById('f2-hln').checked = document.getElementById('f1-hln').checked;
+
+      document.getElementById('f2-jam-mulai').textContent = document.getElementById('f1-jam-mulai').textContent;
+      document.getElementById('f2-jam-selesai').textContent = document.getElementById('f1-jam-selesai').textContent;
+      document.getElementById('f2-durasi').textContent = document.getElementById('f1-durasi').textContent;
+      document.getElementById('f2-deskripsi').value = document.getElementById('f1-deskripsi').value;
+
+      document.getElementById('f2-tgl-ttd').textContent = document.getElementById('f1-tgl-ttd').textContent;
+      document.getElementById('f2-nama-diajukan').textContent = document.getElementById('f1-nama-diajukan').textContent;
+      document.getElementById('f2-nama-disetujui').textContent = document.getElementById('f1-nama-disetujui').textContent;
+
+      const c11 = document.getElementById('canvas-1-1');
+      const c21 = document.getElementById('canvas-2-1');
+      const ctx21 = c21.getContext('2d');
+      ctx21.clearRect(0, 0, c21.width, c21.height);
+      ctx21.drawImage(c11, 0, 0);
+
+      const c12 = document.getElementById('canvas-1-2');
+      const c22 = document.getElementById('canvas-2-2');
+      const ctx22 = c22.getContext('2d');
+      ctx22.clearRect(0, 0, c22.width, c22.height);
+      ctx22.drawImage(c12, 0, 0);
+    }
+
+    function printLembur(mode) {
+      if (mode === 'single') {
+        document.body.classList.add('print-mode-single-lembur');
+      } else {
+        document.body.classList.remove('print-mode-single-lembur');
+      }
+      setTimeout(() => {
+        window.print();
+      }, 100);
+    }
+
+    window.onload = function() {
+      initSignaturePads();
+    };
+  </script>
+</body>
+</html>
